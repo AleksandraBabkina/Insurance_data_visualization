@@ -68,8 +68,10 @@ min_y_df2 = df2['bt'].min() - 100
 max_y_df2 = df2['bt'].max() + 100
 min_y_df3 = df3['bt'].min() - 100
 max_y_df3 = df3['bt'].max() + 100
+
+# Fix min/max for df4 (corrected code)
 min_y_df4 = df4['ДАТА_РАСЧЕТА'].min() - datetime.timedelta(days=100)
-min_y_df4 = df4['ДАТА_РАСЧЕТА'].max() + datetime.timedelta(days=100)
+max_y_df4 = df4['ДАТА_РАСЧЕТА'].max() + datetime.timedelta(days=100)
 
 # Data transformation
 df4['РЕГИОН_СОБСТВЕННИКА'] = df4['РЕГИОН_СОБСТВЕННИКА'].astype(str)
@@ -188,86 +190,76 @@ app.layout = html.Div([
         html.Span(' | '),
         dcc.Link('Skip by Regions/prol/KBM', href='/page-3'),
         html.Span(' | '),
-        dcc.Link('Tariff Changes by Dates and Regions', href='/page-4'),
-    ], style={'text-align': 'center', 'margin-bottom': '20px'}),
-    html.Div(id='page-content')
+        dcc.Link('Tariff Evolution by Dates', href='/page-4'),
+    ], style={'fontSize': 20}),
+    # Main content of the page
+    html.Div(id='page-content', style={'margin-top': 30}),
 ])
 
-# Page 1 content
-page_1_layout = html.Div([
-    html.H1("Top 10 Tariffs by prol Field", style={'font-weight': 'bold', 'text-align': 'center'}),
-    html.Div([
-        dcc.Graph(figure=fig1, style={'display': 'inline-block', 'width': '50%', 'height': '500px'}),
-        dcc.Graph(figure=fig2, style={'display': 'inline-block', 'width': '50%', 'height': '500px'})
-    ], style={'width': '100%'})
-])
-
-# Page 2 content
-page_2_layout = html.Div([
-    html.H1("Top 10 Tariffs by Regions", style={'font-weight': 'bold', 'text-align': 'center'}),
-    html.Br(), 
-    html.Br(),
-    dcc.Dropdown(
-        id='region-dropdown',
-        options=[{'label': region, 'value': region} for region in df3['РЕГИОН_СОБСТВЕННИКА'].unique()],
-        value=df3['РЕГИОН_СОБСТВЕННИКА'].unique()[0],  # Use the first region by default
-        multi=False,
-        placeholder='Select Region'
-    ),
-    html.Br(), 
-    html.Br(),
-    dcc.Graph(id='graph-3')
-])
-
-# Page 3 content
-page_3_layout = html.Div([
-    html.H1("Skip by Regions/prol/KBM", style={'font-weight': 'bold', 'text-align': 'center'}),
-    # You can add graphs for the third page here
-])
-
-# Page 4 content
-page_4_layout = html.Div([
-    html.H1("Tariff Changes by Dates and Regions", style={'font-weight': 'bold', 'text-align': 'center'}),
-    html.Br(), 
-    html.Br(),
-    dcc.Dropdown(
-        id='region-dropdown-4',
-        options=[{'label': region, 'value': region} for region in df4['РЕГИОН_СОБСТВЕННИКА'].unique()],
-        value=regions[0],  # Use the first region by default
-        multi=False,
-        placeholder='Select Region'
-    ),
-    html.Br(), 
-    html.Br(),
-    # Radio buttons for interval selection
-    dcc.RadioItems(
-        id='interval-radio',
-        options=[
-            {'label': 'By Date', 'value': 'ДАТА_РАСЧЕТА'},
-            {'label': 'By Week', 'value': 'НЕДЕЛЯ'},
-            {'label': 'By Month', 'value': 'МЕСЯЦ'}
-        ],
-        value='ДАТА_РАСЧЕТА',  # Default value
-        labelStyle={'display': 'inline-block', 'margin-right': '30px'}
-    ),
-    html.Br(), 
-    html.Br(),
-    dcc.Graph(id='scatter-plot')
-])
-
-# Update page content based on URL
-@app.callback(dash.dependencies.Output('page-content', 'children'), [dash.dependencies.Input('url', 'pathname')])
+# Define pages' content (page-1, page-2, page-3, page-4)
+@app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
     if pathname == '/page-2':
-        return page_2_layout
+        return html.Div([
+            html.H3('Top 10 Tariffs by Regions'),
+            dcc.Dropdown(
+                id='region-dropdown',
+                options=[{'label': region, 'value': region} for region in regions],
+                value=regions[0],
+                style={'width': '50%'}
+            ),
+            dcc.Graph(id='graph-3'),
+        ])
     elif pathname == '/page-3':
-        return page_3_layout
+        return html.Div([
+            html.H3('Tariff Evolution by Regions/Prol/KBM'),
+            dcc.Dropdown(
+                id='region-dropdown-4',
+                options=[{'label': region, 'value': region} for region in regions],
+                value=regions[0],
+                style={'width': '50%'}
+            ),
+            dcc.RadioItems(
+                id='interval-radio',
+                options=[
+                    {'label': 'By Date', 'value': 'ДАТА_РАСЧЕТА'},
+                    {'label': 'By Week', 'value': 'НЕДЕЛЯ'},
+                    {'label': 'By Month', 'value': 'МЕСЯЦ'},
+                ],
+                value='ДАТА_РАСЧЕТА',
+                style={'margin-bottom': '20px'}
+            ),
+            dcc.Graph(id='scatter-plot'),
+        ])
     elif pathname == '/page-4':
-        return page_4_layout
+        return html.Div([
+            html.H3('Tariff Evolution by Dates'),
+            dcc.Dropdown(
+                id='region-dropdown-4',
+                options=[{'label': region, 'value': region} for region in regions],
+                value=regions[0],
+                style={'width': '50%'}
+            ),
+            dcc.RadioItems(
+                id='interval-radio',
+                options=[
+                    {'label': 'By Date', 'value': 'ДАТА_РАСЧЕТА'},
+                    {'label': 'By Week', 'value': 'НЕДЕЛЯ'},
+                    {'label': 'By Month', 'value': 'МЕСЯЦ'},
+                ],
+                value='ДАТА_РАСЧЕТА',
+                style={'margin-bottom': '20px'}
+            ),
+            dcc.Graph(id='scatter-plot'),
+        ])
     else:
-        return page_1_layout
+        return html.Div([
+            html.H3('Top 10 Tariffs by prol Field'),
+            dcc.Graph(figure=fig1),
+            dcc.Graph(figure=fig2),
+        ])
 
-# Run the application
+# Run the app
 if __name__ == '__main__':
     if not os.environ.get('WERKZEUG_RUN_MAIN'):
         webbrowser.open('http://127.0.0.1:8050/')
